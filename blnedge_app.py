@@ -19,8 +19,14 @@ with opt_tab:
         df['Player'] = df['First Name'].fillna('') + ' ' + df['Last Name'].fillna('')
         df['Salary'] = pd.to_numeric(df['Salary'], errors='coerce')
         df = df[df['Injury Indicator'].isna()]
-        df = df[(df['Roster Position'] != 'P') | (df['Probable Pitcher'] == 'Yes')]
 
+        # FIXED: allow all hitters and only "Yes" pitchers
+        df = df[
+            (df['Roster Position'] != 'P') |
+            ((df['Roster Position'] == 'P') & (df['Probable Pitcher'] == 'Yes'))
+        ]
+
+        # Default input stats
         df['K/9'] = 9.5
         df['Opponent K%'] = 0.23
         df['ERA'] = 3.80
@@ -33,11 +39,13 @@ with opt_tab:
         df['Lineup Pos'] = 3
         df['Opp Pitcher Grade'] = 3
 
+        # Apply projections
         if use_custom_proj:
             df = apply_projections(df)
         else:
             df['Projected'] = df['FPPG']
 
+        st.write("🧪 Positions in pool:", df['Roster Position'].value_counts())
         st.write("📋 Filtered Player Pool:")
         st.dataframe(df[['Player', 'Roster Position', 'Salary', 'Team', 'Projected']])
 
@@ -62,8 +70,12 @@ with prop_tab:
         sal['Player'] = sal['First Name'].fillna('') + ' ' + sal['Last Name'].fillna('')
         sal['Salary'] = pd.to_numeric(sal['Salary'], errors='coerce')
         sal = sal[sal['Injury Indicator'].isna()]
-        sal = sal[(sal['Roster Position'] != 'P') | (sal['Probable Pitcher'] == 'Yes')]
+        sal = sal[
+            (sal['Roster Position'] != 'P') |
+            ((sal['Roster Position'] == 'P') & (sal['Probable Pitcher'] == 'Yes'))
+        ]
 
+        # Inject default metrics
         sal['K/9'] = 9.5
         sal['Opponent K%'] = 0.23
         sal['ERA'] = 3.80
