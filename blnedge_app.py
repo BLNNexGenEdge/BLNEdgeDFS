@@ -3,7 +3,6 @@ import pandas as pd
 from custom_projector import apply_projections
 from blnedge_lp_optimizer import optimize_lineup
 from blnedge_props import generate_prop_edges
-
 st.set_page_config(page_title="BLNEdgeDFS", layout="wide")
 st.title("⚾ BLNEdgeDFS: Fantasy Lineup & Prop Analyzer")
 
