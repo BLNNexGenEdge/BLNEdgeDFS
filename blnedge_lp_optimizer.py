@@ -12,7 +12,7 @@ def optimize_lineup(df):
         for i in df.index
     }
 
-    # Objective: Maximize total projected points
+    # Objective: Maximize Projected Points
     prob += pulp.lpSum([
         player_vars[i] * df.loc[i, 'Projected']
         for i in df.index
@@ -24,7 +24,7 @@ def optimize_lineup(df):
         for i in df.index
     ]) <= 35000, "SalaryCap"
 
-    # Positional constraints using multi-slot matching
+    # Positional constraints using helper
     def slot_constraint(pos_label, count):
         prob += pulp.lpSum([
             player_vars[i]
@@ -39,7 +39,7 @@ def optimize_lineup(df):
     slot_constraint('SS', 1)
     slot_constraint('OF', 3)
 
-    # UTIL: any non-pitcher — at least 1 additional hitter
+    # UTIL: at least 2 extra hitters
     prob += pulp.lpSum([
         player_vars[i]
         for i in df.index
@@ -54,7 +54,7 @@ def optimize_lineup(df):
             if df.loc[i, 'Team'] == team
         ]) <= 4, f"Max4_{team}"
 
-    # At least 3 teams represented
+    # At least 3 teams
     team_vars = {
         team: pulp.LpVariable(f"team_used_{team}", cat='Binary')
         for team in df['Team'].unique()
@@ -71,7 +71,7 @@ def optimize_lineup(df):
         team_vars[team] for team in team_vars
     ]) >= 3, "Min3Teams"
 
-    # Solve it
+    # Solve
     prob.solve()
 
     if pulp.LpStatus[prob.status] != 'Optimal':
