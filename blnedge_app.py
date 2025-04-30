@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 from custom_projector import apply_projections
 from blnedge_lp_optimizer import optimize_lineup
 from blnedge_props import generate_prop_edges
@@ -26,26 +27,27 @@ with opt_tab:
             ((df['Roster Position'] == 'P') & (df['Probable Pitcher'] == 'Yes'))
         ]
 
-        # Default input stats
-        df['K/9'] = 9.5
-        df['Opponent K%'] = 0.23
-        df['ERA'] = 3.80
-        df['Opponent wRC+'] = 100
-        df['Ballpark Factor'] = 0
-        df['Recent Form'] = 0.5
-        df['AVG'] = 0.265
-        df['ISO'] = 0.180
-        df['wRC+'] = 110
-        df['Lineup Pos'] = 3
-        df['Opp Pitcher Grade'] = 3
+        # Inject varied testing stats
+        df['K/9'] = np.random.uniform(7.0, 11.0, size=len(df))
+        df['Opponent K%'] = np.random.uniform(0.20, 0.27, size=len(df))
+        df['ERA'] = np.random.uniform(2.5, 5.0, size=len(df))
+        df['Opponent wRC+'] = np.random.normal(100, 10, size=len(df))
+        df['Ballpark Factor'] = np.random.uniform(-1.0, 1.0, size=len(df))
+        df['Recent Form'] = np.random.uniform(-0.5, 1.0, size=len(df))
+        df['AVG'] = np.random.uniform(0.220, 0.320, size=len(df))
+        df['ISO'] = np.random.uniform(0.100, 0.250, size=len(df))
+        df['wRC+'] = np.random.normal(100, 20, size=len(df))
+        df['Lineup Pos'] = np.random.randint(1, 6, size=len(df))
+        df['Opp Pitcher Grade'] = np.random.uniform(1, 5, size=len(df))
 
-        # Apply projections
         if use_custom_proj:
             df = apply_projections(df)
         else:
             df['Projected'] = df['FPPG']
 
-        st.write("🧪 Positions in pool:", df['Roster Position'].value_counts())
+        df['Projected'] = df['Projected'].clip(lower=0, upper=50)
+
+        st.write("🧪 Position breakdown:", df['Roster Position'].value_counts())
         st.write("📋 Filtered Player Pool:")
         st.dataframe(df[['Player', 'Roster Position', 'Salary', 'Team', 'Projected']])
 
@@ -75,20 +77,21 @@ with prop_tab:
             ((sal['Roster Position'] == 'P') & (sal['Probable Pitcher'] == 'Yes'))
         ]
 
-        # Inject default metrics
-        sal['K/9'] = 9.5
-        sal['Opponent K%'] = 0.23
-        sal['ERA'] = 3.80
-        sal['Opponent wRC+'] = 100
-        sal['Ballpark Factor'] = 0
-        sal['Recent Form'] = 0.5
-        sal['AVG'] = 0.265
-        sal['ISO'] = 0.180
-        sal['wRC+'] = 110
-        sal['Lineup Pos'] = 3
-        sal['Opp Pitcher Grade'] = 3
+        # Same varied stats for props
+        sal['K/9'] = np.random.uniform(7.0, 11.0, size=len(sal))
+        sal['Opponent K%'] = np.random.uniform(0.20, 0.27, size=len(sal))
+        sal['ERA'] = np.random.uniform(2.5, 5.0, size=len(sal))
+        sal['Opponent wRC+'] = np.random.normal(100, 10, size=len(sal))
+        sal['Ballpark Factor'] = np.random.uniform(-1.0, 1.0, size=len(sal))
+        sal['Recent Form'] = np.random.uniform(-0.5, 1.0, size=len(sal))
+        sal['AVG'] = np.random.uniform(0.220, 0.320, size=len(sal))
+        sal['ISO'] = np.random.uniform(0.100, 0.250, size=len(sal))
+        sal['wRC+'] = np.random.normal(100, 20, size=len(sal))
+        sal['Lineup Pos'] = np.random.randint(1, 6, size=len(sal))
+        sal['Opp Pitcher Grade'] = np.random.uniform(1, 5, size=len(sal))
 
         sal = apply_projections(sal)
+        sal['Projected'] = sal['Projected'].clip(lower=0, upper=50)
         merged = generate_prop_edges(props, sal)
 
         st.dataframe(merged)
