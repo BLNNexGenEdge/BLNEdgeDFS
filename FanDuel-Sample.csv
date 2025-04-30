@@ -1,0 +1,10 @@
+Id,First Name,Last Name,Roster Position,Salary,Team,Opponent,FPPG,Probable Pitcher,Injury Indicator
+1,Gerrit,Cole,P,10000,NYY,BOS,40.5,Yes,
+2,Freddie,Freeman,C/1B,3900,LAD,ARI,12.4,,
+3,Jose,Altuve,2B,3600,HOU,SEA,10.2,,
+4,Rafael,Devers,3B,4100,BOS,NYY,13.7,,
+5,Trea,Turner,SS,4000,PHI,MIA,11.5,,
+6,Aaron,Judge,OF,4700,NYY,BOS,15.8,,
+7,Juan,Soto,OF,4500,NYY,BOS,14.9,,
+8,Kyle,Tucker,OF,4300,HOU,SEA,13.1,,
+9,Shohei,Ohtani,UTIL,4800,LAD,ARI,17.2,,
