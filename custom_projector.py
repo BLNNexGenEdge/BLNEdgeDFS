@@ -1,38 +1,52 @@
 def custom_pitcher_projection(row):
-    k9 = row.get('K/9', 0)
-    opp_k_pct = row.get('Opponent K%', 0)
-    era = row.get('ERA', 0)
-    opp_wrc_plus = row.get('Opponent wRC+', 100)
-    ballpark = row.get('Ballpark Factor', 0)
-    recent = row.get('Recent Form', 0)
+    try:
+        k9 = float(row.get('K/9', 8.0))
+        opp_k_pct = float(row.get('Opponent K%', 0.22))
+        era = float(row.get('ERA', 4.00))
+        wrc_plus = float(row.get('Opponent wRC+', 100))
+        ballpark = float(row.get('Ballpark Factor', 0))
+        recent = float(row.get('Recent Form', 0.5))
 
-    return (
-        (k9 * opp_k_pct * 0.2)
-        - (era * 1.25)
-        - (opp_wrc_plus * 0.05)
-        + ballpark
-        + recent
-    )
+        strikeout_score = k9 * opp_k_pct * 2.5
+        efficiency_score = max(0, 10 - era)
+        difficulty_penalty = (wrc_plus - 100) * 0.05
+
+        projection = (
+            strikeout_score +
+            efficiency_score -
+            difficulty_penalty +
+            ballpark +
+            recent
+        )
+
+        return round(projection, 2)
+    except Exception as e:
+        print(f"⚠️ Error projecting pitcher {row.get('Player')}: {e}")
+        return 0.0
+
 
 def custom_hitter_projection(row):
-    avg = row.get('AVG', 0)
-    iso = row.get('ISO', 0)
-    wrc_plus = row.get('wRC+', 100)
-    lineup_pos = row.get('Lineup Pos', 6)
-    ballpark = row.get('Ballpark Factor', 0)
-    recent = row.get('Recent Form', 0)
-    opp_pitch_grade = row.get('Opp Pitcher Grade', 3)
+    avg = float(row.get('AVG', 0.265))
+    iso = float(row.get('ISO', 0.160))
+    wrc_plus = float(row.get('wRC+', 100))
+    lineup_pos = int(row.get('Lineup Pos', 5))
+    ballpark = float(row.get('Ballpark Factor', 0))
+    recent = float(row.get('Recent Form', 0.5))
+    opp_pitch = float(row.get('Opp Pitcher Grade', 3))
 
-    lineup_bonus = {1: 1.5, 2: 1.2, 3: 1.8, 4: 1.8, 5: 1.5}.get(lineup_pos, 1.0)
+    lineup_bonus = {1: 1.6, 2: 1.4, 3: 1.8, 4: 1.7}.get(lineup_pos, 1.0)
 
-    return (
-        (avg * 10)
-        + (iso * 15)
-        + (wrc_plus / 100 * ballpark)
-        + recent
-        + lineup_bonus
-        - (opp_pitch_grade * 1.25)
+    return round(
+        avg * 12 +
+        iso * 20 +
+        wrc_plus * 0.1 +
+        lineup_bonus +
+        ballpark +
+        recent -
+        opp_pitch * 1.25,
+        2
     )
+
 
 def apply_projections(df):
     projections = []
