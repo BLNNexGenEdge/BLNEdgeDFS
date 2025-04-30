@@ -3,6 +3,7 @@ import pandas as pd
 from custom_projector import apply_projections
 from blnedge_lp_optimizer import optimize_lineup
 from blnedge_props import generate_prop_edges
+
 st.set_page_config(page_title="BLNEdgeDFS", layout="wide")
 st.title("⚾ BLNEdgeDFS: Fantasy Lineup & Prop Analyzer")
 
@@ -36,6 +37,9 @@ with opt_tab:
             df = apply_projections(df)
         else:
             df['Projected'] = df['FPPG']
+
+        st.write("📋 Filtered Player Pool:")
+        st.dataframe(df[['Player', 'Roster Position', 'Salary', 'Team', 'Projected']])
 
         st.success("Projection data applied. Running optimizer...")
         result = optimize_lineup(df)
@@ -71,9 +75,10 @@ with prop_tab:
         sal['wRC+'] = 110
         sal['Lineup Pos'] = 3
         sal['Opp Pitcher Grade'] = 3
-        sal = apply_projections(sal)
 
+        sal = apply_projections(sal)
         merged = generate_prop_edges(props, sal)
+
         st.dataframe(merged)
         csv2 = merged.to_csv(index=False).encode('utf-8')
         st.download_button("Download Prop Picks CSV", csv2, "Top_Prop_Picks.csv")
