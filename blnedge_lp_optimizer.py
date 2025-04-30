@@ -10,15 +10,16 @@ def optimize_lineup(df):
     # Salary cap
     prob += pulp.lpSum([player_vars[i] * df.loc[i, 'Salary'] for i in df.index]) <= 35000, "SalaryCap"
 
-    def slot_constraint(label, count):
-        prob += pulp.lpSum([player_vars[i] for i in df.index if df.loc[i, 'Roster Position'] == label]) == count
+def slot_constraint(label, count, df, player_vars, prob):
+    prob += pulp.lpSum([player_vars[i] for i in df.index if df.loc[i, 'Roster Position'] == label]) == count
 
-    slot_constraint('P', 1)
-    slot_constraint('C/1B', 1)
-    slot_constraint('2B', 1)
-    slot_constraint('3B', 1)
-    slot_constraint('SS', 1)
-    slot_constraint('OF', 3)
+slot_constraint('P', 1, df, player_vars, prob)
+slot_constraint('C/1B', 1, df, player_vars, prob)
+slot_constraint('2B', 1, df, player_vars, prob)
+slot_constraint('3B', 1, df, player_vars, prob)
+slot_constraint('SS', 1, df, player_vars, prob)
+slot_constraint('OF', 3, df, player_vars, prob)
+
     prob += pulp.lpSum([player_vars[i] for i in df.index if df.loc[i, 'Roster Position'] != 'P']) >= 1, "UTIL_count"
 
     # Max 4 players per team
