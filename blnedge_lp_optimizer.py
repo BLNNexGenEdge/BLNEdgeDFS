@@ -4,7 +4,7 @@ def optimize_lineup(df):
     # Define the optimization problem
     prob = pulp.LpProblem("DFS_Lineup", pulp.LpMaximize)
 
-    # Create a binary decision variable for each player
+    # Create a binary variable for each player
     player_vars = {
         i: pulp.LpVariable(f"x_{i}", cat='Binary')
         for i in df.index
@@ -22,23 +22,44 @@ def optimize_lineup(df):
         for i in df.index
     ]) <= 35000, "SalaryCap"
 
-    # Slot constraints (helper)
-    def slot_constraint(label, count):
-        prob += pulp.lpSum([
-            player_vars[i]
-            for i in df.index
-            if df.loc[i, 'Roster Position'] == label
-        ]) == count
+    # Positional constraints
+    prob += pulp.lpSum([
+        player_vars[i]
+        for i in df.index
+        if df.loc[i, 'Roster Position'] == 'P'
+    ]) == 1, "Pitcher"
 
-    # Enforce roster slots
-    slot_constraint('P', 1)
-    slot_constraint('C/1B', 1)
-    slot_constraint('2B', 1)
-    slot_constraint('3B', 1)
-    slot_constraint('SS', 1)
-    slot_constraint('OF', 3)
+    prob += pulp.lpSum([
+        player_vars[i]
+        for i in df.index
+        if df.loc[i, 'Roster Position'] == 'C/1B'
+    ]) == 1, "C1B"
 
-    # UTIL: any non-pitcher not already selected — at least one
+    prob += pulp.lpSum([
+        player_vars[i]
+        for i in df.index
+        if df.loc[i, 'Roster Position'] == '2B'
+    ]) == 1, "2B"
+
+    prob += pulp.lpSum([
+        player_vars[i]
+        for i in df.index
+        if df.loc[i, 'Roster Position'] == '3B'
+    ]) == 1, "3B"
+
+    prob += pulp.lpSum([
+        player_vars[i]
+        for i in df.index
+        if df.loc[i, 'Roster Position'] == 'SS'
+    ]) == 1, "SS"
+
+    prob += pulp.lpSum([
+        player_vars[i]
+        for i in df.index
+        if df.loc[i, 'Roster Position'] == 'OF'
+    ]) == 3, "OF"
+
+    # UTIL: at least 1 extra hitter
     prob += pulp.lpSum([
         player_vars[i]
         for i in df.index
@@ -51,9 +72,9 @@ def optimize_lineup(df):
             player_vars[i]
             for i in df.index
             if df.loc[i, 'Team'] == team
-        ]) <= 4
+        ]) <= 4, f"Max4_{team}"
 
-    # At least 3 different teams
+    # At least 3 unique teams
     team_vars = {
         team: pulp.LpVariable(f"team_used_{team}", cat='Binary')
         for team in df['Team'].unique()
@@ -64,14 +85,15 @@ def optimize_lineup(df):
             player_vars[i]
             for i in df.index
             if df.loc[i, 'Team'] == team
-        ])
+        ]), f"TeamUsed_{team}"
 
-    prob += pulp.lpSum([team_vars[team] for team in team_vars]) >= 3
+    prob += pulp.lpSum([
+        team_vars[team] for team in team_vars
+    ]) >= 3, "Min3Teams"
 
-    # Solve the model
+    # Solve the problem
     prob.solve()
 
-    # If no valid solution, return None
     if pulp.LpStatus[prob.status] != 'Optimal':
         return None
 
